@@ -22,18 +22,16 @@ void TaskButtonDebounce(void *pvParameters);
 void TaskMotorControl(void *pvParameters);
 
 void setup() {
-  // Initialize serial for debugging
-  Serial.begin(9600);
+  Serial.begin(9600); // for debugging
   
-  // Initialize pins
   pinMode(pwm, OUTPUT);
   pinMode(button, INPUT);
   analogWrite(pwm, 0);
   
-  // Create FreeRTOS tasks
+  // FreeRTOS tasks
   xTaskCreate(
     TaskButtonDebounce,           // Task function
-    "ButtonDebounce",             // Task name (for debugging)
+    "ButtonDebounce",             // Task name 
     128,                          // Stack size (words)
     NULL,                         // Task parameters
     1,                            // Task priority
@@ -42,20 +40,19 @@ void setup() {
   
   xTaskCreate(
     TaskMotorControl,             // Task function
-    "MotorControl",               // Task name (for debugging)
+    "MotorControl",               // Task name 
     128,                          // Stack size (words)
     NULL,                         // Task parameters
     1,                            // Task priority
     NULL                          // Task handle
   );
   
-  // Start the FreeRTOS scheduler (tasks begin executing)
+  // Start the FreeRTOS scheduler
   vTaskStartScheduler();
 }
 
 void loop() {
   // Empty loop - FreeRTOS scheduler takes over
-  // This should never be reached
 }
 
 // Task: Button debounce and state management
@@ -75,20 +72,20 @@ void TaskButtonDebounce(void *pvParameters) {
     Serial.print(" | State Count: ");
     Serial.println(state_count);
     
-    // Check if button reading has changed (potential bounce or real press)
+    // Check if button reading has changed
     if (buttonRead != lastButtonState) {
       lastDebounceTime = millis();  // Reset debounce timer
     }
     
-    // Check if enough time has passed since last state change (debounce complete)
+    // Check if enough time has passed since last state change 
     if ((millis() - lastDebounceTime) > debounceDelay) {
       // Check if the stable reading is different from current button state
       if (buttonRead != buttonState) {
         buttonState = buttonRead;  // Update button state to new stable value
         
-        // Only update motor speed on button PRESS (transition from LOW to HIGH)
+        // update motor speed on button PRESS 
         if (buttonState == HIGH) {
-          // Ascending phase: increase speed from 0 to 8
+          //increase speed from 0 to 8
           if (decend == false) {
             state_count = state_count + 2;  // Increment speed state by 2
             if (state_count >= 8) {         // Check if maximum reached
@@ -96,7 +93,7 @@ void TaskButtonDebounce(void *pvParameters) {
               decend = true;                // Switch to descending mode
             }
           }
-          // Descending phase: decrease speed from 8 to 0
+          // decrease speed from 8 to 0
           else {
             state_count = state_count - 2;  // Decrement speed state by 2
             if (state_count <= 0) {         // Check if minimum reached
@@ -110,8 +107,7 @@ void TaskButtonDebounce(void *pvParameters) {
     
     // Save current reading for next iteration
     lastButtonState = buttonRead;
-    
-    // FreeRTOS delay - yields to other tasks
+  
     vTaskDelay(100 / portTICK_PERIOD_MS);  // 100ms delay
   }
 }
